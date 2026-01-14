@@ -8,22 +8,42 @@
     <style>
         :root { --primary: #2196F3; --success: #4CAF50; --light: #f5f5f5; --border: #ddd; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: var(--light); color: #333; }
-        #loginPage { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; }
-        .login-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; width: 100%; text-align: center; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: var(--light); color: #333; line-height: 1.6; }
+        
+        /* 登入頁面：預設顯示 */
+        #loginPage { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 20px; 
+        }
+        .login-container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+            max-width: 400px; 
+            width: 100%; 
+            text-align: center; 
+        }
+
+        /* 主程式：預設隱藏 */
         #mainApp { display: none; flex-direction: column; min-height: 100vh; }
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
         .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: #eee; padding: 5px; }
         .nav-btn { padding: 12px; border: none; background: white; cursor: pointer; font-size: 14px; border-radius: 4px; }
         .nav-btn.active { background: var(--primary); color: white; }
+        
         .content-wrapper { flex: 1; padding: 15px; overflow-y: auto; }
         .page { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .page.active { display: block; }
-        .form-group { margin-bottom: 15px; }
+        
+        .form-group { margin-bottom: 15px; text-align: left; }
         label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
         input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; }
-        .btn-success { background: var(--success); color: white; padding: 15px; width: 100%; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .btn-success:disabled { background: #ccc; }
+        .btn-success { background: var(--success); color: white; padding: 15px; width: 100%; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -31,8 +51,8 @@
     <div id="loginPage">
         <div class="login-container">
             <h1>🏗️ 工程日報系統</h1>
-            <p style="margin: 20px 0;">請使用 mekongkh.net 帳號登入</p>
-            <div id="googleLoginBtn" style="display: flex; justify-content: center;"></div>
+            <p style="margin: 20px 0;">請使用 Google 帳號登入</p>
+            <div id="googleLoginBtn" style="display: flex; justify-content: center; min-height: 40px;"></div>
         </div>
     </div>
 
@@ -82,90 +102,99 @@
     </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4dbqIlwlwEHZ2HIg2POiNVhxBW84J1_5xQk9n11D0yAZkZ6ctIZtZ1wkuCtgJDLXa/exec';
-    const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com';
+    [cite_start]const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4dbqIlwlwEHZ2HIg2POiNVhxBW84J1_5xQk9n11D0yAZkZ6ctIZtZ1wkuCtgJDLXa/exec'; [cite: 167]
+    [cite_start]const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com'; [cite: 168]
 
     let currentUser = null;
 
     window.onload = function() {
-        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse });
-        google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large' });
-        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
-        const saved = localStorage.getItem('engineering_user');
-        if (saved) { currentUser = JSON.parse(saved); showMainApp(); }
+        // 確保元素存在後再初始化
+        if (typeof google !== 'undefined') {
+            [cite_start]google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse }); [cite: 168]
+            [cite_start]google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large' }); [cite: 169]
+        }
+        
+        [cite_start]document.getElementById('reportDate').value = new Date().toISOString().split('T')[0]; [cite: 169]
+        
+        [cite_start]const saved = localStorage.getItem('engineering_user'); [cite: 169]
+        if (saved) { 
+            [cite_start]currentUser = JSON.parse(saved); [cite: 170]
+            showMainApp(); 
+        }
     };
 
+    [cite_start]// 其餘 JavaScript 邏輯 (handleCredentialResponse, submitForm 等) 保持不變 [cite: 171-187]
     function handleCredentialResponse(response) {
-        const data = JSON.parse(atob(response.credential.split('.')[1]));
-        if (!data.email.endsWith('@mekongkh.net')) { alert('❌ 僅限 mekongkh.net 帳號'); return; }
+        [cite_start]const data = JSON.parse(atob(response.credential.split('.')[1])); [cite: 171]
+        if (!data.email.endsWith('@mekongkh.net')) { alert('❌ 僅限 mekongkh.net 帳號'); return; [cite_start]} [cite: 172]
         currentUser = data;
-        localStorage.setItem('engineering_user', JSON.stringify(data));
+        [cite_start]localStorage.setItem('engineering_user', JSON.stringify(data)); [cite: 173]
         showMainApp();
     }
 
     function showMainApp() {
-        document.getElementById('userEmail').textContent = currentUser.email;
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'flex';
+        [cite_start]document.getElementById('userEmail').textContent = currentUser.email; [cite: 173]
+        [cite_start]document.getElementById('loginPage').style.display = 'none'; [cite: 174]
+        [cite_start]document.getElementById('mainApp').style.display = 'flex'; [cite: 174]
     }
 
-    function logout() { localStorage.removeItem('engineering_user'); location.reload(); }
+    [cite_start]function logout() { localStorage.removeItem('engineering_user'); location.reload(); [cite: 174] }
 
     function switchPage(p) {
-        document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(p).classList.add('active');
-        event.currentTarget.classList.add('active');
+        [cite_start]document.querySelectorAll('.page').forEach(el => el.classList.remove('active')); [cite: 175]
+        [cite_start]document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active')); [cite: 175]
+        [cite_start]document.getElementById(p).classList.add('active'); [cite: 176]
+        if(event) event.currentTarget.classList.add('active');
     }
 
     function addWorkerRow() {
-        const div = document.createElement('div');
-        div.style = "display: flex; gap: 5px; margin-bottom: 5px;";
-        div.innerHTML = `<input type="text" placeholder="工種" class="worker-type"><input type="number" placeholder="人數" class="worker-num" style="width: 80px;">`;
-        document.getElementById('workerList').appendChild(div);
+        [cite_start]const div = document.createElement('div'); [cite: 176]
+        [cite_start]div.style = "display: flex; gap: 5px; margin-bottom: 5px;"; [cite: 177]
+        [cite_start]div.innerHTML = `<input type="text" placeholder="工種" class="worker-type"><input type="number" placeholder="人數" class="worker-num" style="width: 80px;">`; [cite: 177]
+        [cite_start]document.getElementById('workerList').appendChild(div); [cite: 177]
     }
 
     async function fileToBase64(file) {
-        return new Promise((r) => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); });
+        [cite_start]return new Promise((r) => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); }); [cite: 178]
     }
 
     async function submitForm() {
-        const siteName = document.getElementById('siteName').value;
-        const workDesc = document.getElementById('workDescription').value;
-        const photoFiles = document.getElementById('constPhotos').files;
+        [cite_start]const siteName = document.getElementById('siteName').value; [cite: 179]
+        [cite_start]const workDesc = document.getElementById('workDescription').value; [cite: 180]
+        [cite_start]const photoFiles = document.getElementById('constPhotos').files; [cite: 180]
 
-        if (!siteName || !workDesc || photoFiles.length === 0) { alert('❌ 請填寫工地名稱、內容並上傳照片！'); return; }
+        [cite_start]if (!siteName || !workDesc || photoFiles.length === 0) { alert('❌ 請填寫工地名稱、內容並上傳照片！'); return; [cite: 180] }
 
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true; btn.innerText = '⏳ 提交中...';
+        [cite_start]const btn = document.getElementById('submitBtn'); [cite: 181]
+        [cite_start]btn.disabled = true; btn.innerText = '⏳ 提交中...'; [cite: 181]
 
-        const workers = [];
+        [cite_start]const workers = []; [cite: 182]
         document.querySelectorAll('#workerList > div').forEach(row => {
             const t = row.querySelector('.worker-type').value;
             const n = row.querySelector('.worker-num').value;
-            if(t) workers.push(`${t}:${n}人`);
+            [cite_start]if(t) workers.push(`${t}:${n}人`); [cite: 182]
         });
 
         try {
             const photoData = await Promise.all(Array.from(photoFiles).map(async (f, i) => ({
-                type: `施工_${i+1}`, base64: await fileToBase64(f)
+                [cite_start]type: `施工_${i+1}`, base64: await fileToBase64(f) [cite: 183]
             })));
 
             const payload = {
-                user: currentUser.email,
-                siteName: siteName,
-                reportDate: document.getElementById('reportDate').value,
-                workers: workers.join(", "),
-                materials: document.getElementById('materialStatus').value,
-                equipment: document.getElementById('equipmentStatus').value,
-                workDescription: workDesc,
-                photos: photoData
+                [cite_start]user: currentUser.email, [cite: 184]
+                [cite_start]siteName: siteName, [cite: 184]
+                [cite_start]reportDate: document.getElementById('reportDate').value, [cite: 184]
+                [cite_start]workers: workers.join(", "), [cite: 184]
+                [cite_start]materials: document.getElementById('materialStatus').value, [cite: 184]
+                [cite_start]equipment: document.getElementById('equipmentStatus').value, [cite: 185]
+                [cite_start]workDescription: workDesc, [cite: 185]
+                [cite_start]photos: photoData [cite: 185]
             };
 
-            await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert('✅ 提交完成！');
-            location.reload();
-        } catch (err) { alert('❌ 失敗: ' + err.message); btn.disabled = false; }
+            [cite_start]await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); [cite: 186]
+            [cite_start]alert('✅ 提交完成！'); [cite: 186]
+            [cite_start]location.reload(); [cite: 186]
+        } catch (err) { alert('❌ 失敗: ' + err.message); btn.disabled = false; [cite_start]} [cite: 187]
     }
 </script>
 </body>
