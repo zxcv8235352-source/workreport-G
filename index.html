@@ -3,198 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>工程日報系統 - mekongkh.net</title>
+    <title>工程日報系統 - 多工種明細版</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root { --primary: #2196F3; --success: #4CAF50; --light: #f5f5f5; --border: #ddd; }
+        :root { --primary: #2196F3; --success: #4CAF50; --light: #f5f5f5; --border: #ddd; --dark: #333; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: var(--light); color: #333; line-height: 1.6; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: var(--light); color: var(--dark); }
         
-        /* 登入頁面：預設顯示 */
-        #loginPage { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            padding: 20px; 
-        }
-        .login-container { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
-            max-width: 400px; 
-            width: 100%; 
-            text-align: center; 
-        }
+        /* 登入頁面 */
+        #loginPage { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; }
 
-        /* 主程式：預設隱藏 */
+        /* 主程式 */
         #mainApp { display: none; flex-direction: column; min-height: 100vh; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
-        .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: #eee; padding: 5px; }
-        .nav-btn { padding: 12px; border: none; background: white; cursor: pointer; font-size: 14px; border-radius: 4px; }
-        .nav-btn.active { background: var(--primary); color: white; }
+        .header { background: #1e3a8a; color: white; padding: 15px 20px; position: sticky; top: 0; z-index: 100; }
+        .content { flex: 1; padding: 15px; max-width: 800px; margin: 0 auto; width: 100%; }
+
+        /* 卡片樣式 (用於不同工種項目) */
+        .item-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         
-        .content-wrapper { flex: 1; padding: 15px; overflow-y: auto; }
-        .page { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .page.active { display: block; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 15px; }
+        textarea { resize: none; }
         
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; }
-        .btn-success { background: var(--success); color: white; padding: 15px; width: 100%; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+        .btn-submit { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(76,175,80,0.3); }
+        .btn-submit:disabled { background: #ccc; }
+        .btn-remove { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
-        <div class="login-container">
-            <h1>🏗️ 工程日報系統</h1>
-            <p style="margin: 20px 0;">請使用 Google 帳號登入</p>
-            <div id="googleLoginBtn" style="display: flex; justify-content: center; min-height: 40px;"></div>
+        <div class="login-card">
+            <h2>🏗️ 工程管理系統</h2>
+            <p style="margin: 20px 0; color: #666;">請使用公司帳號登入</p>
+            <div id="googleBtn" style="display: flex; justify-content: center;"></div>
         </div>
     </div>
 
     <div id="mainApp">
         <div class="header">
-            <h1>📋 工程日報表</h1>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                <span id="userEmail"></span>
-                <button onclick="logout()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">登出</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>每日施作詳報</h3>
+                <button onclick="logout()" style="background:none; border:1px solid white; color:white; padding:4px 8px; border-radius:4px;">登出</button>
             </div>
+            <div id="userLabel" style="font-size: 12px; margin-top: 5px; opacity: 0.8;"></div>
         </div>
 
-        <div class="nav-tabs">
-            <button class="nav-btn active" onclick="switchPage('page-1')">工種/人數</button>
-            <button class="nav-btn" onclick="switchPage('page-2')">材料/機具</button>
-            <button class="nav-btn" onclick="switchPage('page-3')">內容/照片</button>
-        </div>
-
-        <div class="content-wrapper">
-            <div id="page-1" class="page active">
-                <div class="form-group"><label>工地名稱</label><input type="text" id="siteName" placeholder="例：SITE-001"></div>
-                <div class="form-group"><label>報表日期</label><input type="date" id="reportDate"></div>
-                <hr style="margin: 15px 0;"><label>👷 工種出勤人數</label>
-                <div id="workerList">
-                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                        <input type="text" placeholder="工種" class="worker-type">
-                        <input type="number" placeholder="人數" class="worker-num" style="width: 80px;">
-                    </div>
-                </div>
-                <button onclick="addWorkerRow()" style="width:100%; padding:8px; background:#f9f9f9; border:1px solid #ddd; cursor:pointer;">+ 新增工種</button>
-            </div>
-
-            <div id="page-2" class="page">
-                <div class="form-group"><label>📦 主要材料使用</label><textarea id="materialStatus" rows="5" placeholder="材料名稱、進場量..."></textarea></div>
-                <div class="form-group"><label>🚜 主要機具設備</label><textarea id="equipmentStatus" rows="5" placeholder="設備名稱、數量..."></textarea></div>
-            </div>
-
-            <div id="page-3" class="page">
-                <div class="form-group"><label>📝 今日工作內容</label><textarea id="workDescription" rows="5"></textarea></div>
+        <div class="content">
+            <div class="item-card" style="border-left: 5px solid #333;">
                 <div class="form-group">
-                    <label>📸 施工照片 (可選多張)</label>
-                    <input type="file" id="constPhotos" accept="image/*" capture="environment" multiple>
+                    <label>工地名稱</label>
+                    <input type="text" id="siteName" placeholder="請輸入工地/建案名稱">
                 </div>
-                <button id="submitBtn" class="btn-success" onclick="submitForm()">✅ 完整提交</button>
+                <div class="form-group">
+                    <label>報表日期</label>
+                    <input type="date" id="reportDate">
+                </div>
             </div>
+
+            <div id="itemsContainer">
+                </div>
+
+            <button class="btn-add" onclick="addItemCard()">＋ 新增施作項目 (如：鋼筋、模板)</button>
+            
+            <div class="form-group">
+                <label>📸 現場施工照片 (可一次選取多張)</label>
+                <input type="file" id="allPhotos" accept="image/*" capture="environment" multiple>
+            </div>
+
+            <button id="submitBtn" class="btn-submit" onclick="submitForm()">🚀 完整提交日報</button>
         </div>
     </div>
 
 <script>
-    [cite_start]const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4dbqIlwlwEHZ2HIg2POiNVhxBW84J1_5xQk9n11D0yAZkZ6ctIZtZ1wkuCtgJDLXa/exec'; [cite: 167]
-    [cite_start]const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com'; [cite: 168]
+    const GAS_URL = '你的_GAS_部署網址'; // <--- 請填入您的 GAS URL
+    const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com';
 
     let currentUser = null;
 
+    // 1. 初始化與保持登入邏輯
     window.onload = function() {
-        // 確保元素存在後再初始化
-        if (typeof google !== 'undefined') {
-            [cite_start]google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse }); [cite: 168]
-            [cite_start]google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), { theme: 'outline', size: 'large' }); [cite: 169]
+        google.accounts.id.initialize({
+            client_id: CLIENT_ID,
+            callback: handleCredentialResponse,
+            auto_select: true // 嘗試自動登入
+        });
+        
+        google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'outline', size: 'large' });
+
+        // 設定預設日期
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+
+        // 核心：檢查本地儲存的登入資訊
+        const savedUser = localStorage.getItem('mekong_user');
+        const loginTimestamp = localStorage.getItem('mekong_login_time');
+        const now = new Date().getTime();
+
+        // 如果有紀錄且在 30 分鐘內 (30 * 60 * 1000 毫秒)
+        if (savedUser && loginTimestamp && (now - loginTimestamp < 1800000)) {
+            currentUser = JSON.parse(savedUser);
+            showApp();
+        } else {
+            localStorage.clear(); // 超時或無紀錄則清空
         }
         
-        [cite_start]document.getElementById('reportDate').value = new Date().toISOString().split('T')[0]; [cite: 169]
-        
-        [cite_start]const saved = localStorage.getItem('engineering_user'); [cite: 169]
-        if (saved) { 
-            [cite_start]currentUser = JSON.parse(saved); [cite: 170]
-            showMainApp(); 
-        }
+        addItemCard(); // 初始化一個工種卡片
     };
 
-    [cite_start]// 其餘 JavaScript 邏輯 (handleCredentialResponse, submitForm 等) 保持不變 [cite: 171-187]
     function handleCredentialResponse(response) {
-        [cite_start]const data = JSON.parse(atob(response.credential.split('.')[1])); [cite: 171]
-        if (!data.email.endsWith('@mekongkh.net')) { alert('❌ 僅限 mekongkh.net 帳號'); return; [cite_start]} [cite: 172]
-        currentUser = data;
-        [cite_start]localStorage.setItem('engineering_user', JSON.stringify(data)); [cite: 173]
-        showMainApp();
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        if (!payload.email.endsWith('@mekongkh.net')) {
+            alert('僅限公司帳號登入！');
+            return;
+        }
+        currentUser = payload;
+        // 儲存登入資訊與目前時間戳
+        localStorage.setItem('mekong_user', JSON.stringify(payload));
+        localStorage.setItem('mekong_login_time', new Date().getTime().toString());
+        showApp();
     }
 
-    function showMainApp() {
-        [cite_start]document.getElementById('userEmail').textContent = currentUser.email; [cite: 173]
-        [cite_start]document.getElementById('loginPage').style.display = 'none'; [cite: 174]
-        [cite_start]document.getElementById('mainApp').style.display = 'flex'; [cite: 174]
+    function showApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        document.getElementById('userLabel').textContent = `人員：${currentUser.name} (${currentUser.email})`;
     }
 
-    [cite_start]function logout() { localStorage.removeItem('engineering_user'); location.reload(); [cite: 174] }
-
-    function switchPage(p) {
-        [cite_start]document.querySelectorAll('.page').forEach(el => el.classList.remove('active')); [cite: 175]
-        [cite_start]document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active')); [cite: 175]
-        [cite_start]document.getElementById(p).classList.add('active'); [cite: 176]
-        if(event) event.currentTarget.classList.add('active');
+    function logout() {
+        localStorage.clear();
+        location.reload();
     }
 
-    function addWorkerRow() {
-        [cite_start]const div = document.createElement('div'); [cite: 176]
-        [cite_start]div.style = "display: flex; gap: 5px; margin-bottom: 5px;"; [cite: 177]
-        [cite_start]div.innerHTML = `<input type="text" placeholder="工種" class="worker-type"><input type="number" placeholder="人數" class="worker-num" style="width: 80px;">`; [cite: 177]
-        [cite_start]document.getElementById('workerList').appendChild(div); [cite: 177]
+    // 2. 工種項目動態欄位
+    function addItemCard() {
+        const container = document.getElementById('itemsContainer');
+        const id = Date.now();
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.id = `card-${id}`;
+        card.innerHTML = `
+            <div class="item-header">
+                <input type="text" class="item-name" placeholder="工種名稱 (如：鋼筋、模板)" style="width:70%; font-weight:bold; border:none; border-bottom:1px solid #ccc;">
+                <button class="btn-remove" onclick="document.getElementById('card-${id}').remove()">刪除</button>
+            </div>
+            <div class="form-group">
+                <label>📍 施作範圍/位置</label>
+                <input type="text" class="item-range" placeholder="例如：2F 樑柱">
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>👷 出工數 (人)</label>
+                    <input type="number" class="item-workers" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>📐 施作數量</label>
+                    <input type="text" class="item-qty" placeholder="例如：50 m2">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>📦 用料數量</label>
+                <input type="text" class="item-material" placeholder="例如：水泥 20 包">
+            </div>
+            <div class="form-group">
+                <label>💡 特殊情況/注意事項</label>
+                <textarea class="item-note" rows="2" placeholder="備註特殊現場狀況..."></textarea>
+            </div>
+        `;
+        container.appendChild(card);
     }
 
-    async function fileToBase64(file) {
-        [cite_start]return new Promise((r) => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); }); [cite: 178]
-    }
-
+    // 3. 提交邏輯
     async function submitForm() {
-        [cite_start]const siteName = document.getElementById('siteName').value; [cite: 179]
-        [cite_start]const workDesc = document.getElementById('workDescription').value; [cite: 180]
-        [cite_start]const photoFiles = document.getElementById('constPhotos').files; [cite: 180]
+        const siteName = document.getElementById('siteName').value;
+        const photos = document.getElementById('allPhotos').files;
 
-        [cite_start]if (!siteName || !workDesc || photoFiles.length === 0) { alert('❌ 請填寫工地名稱、內容並上傳照片！'); return; [cite: 180] }
+        if (!siteName || photos.length === 0) {
+            alert('請填寫工地名稱並至少拍攝一張施工照片！');
+            return;
+        }
 
-        [cite_start]const btn = document.getElementById('submitBtn'); [cite: 181]
-        [cite_start]btn.disabled = true; btn.innerText = '⏳ 提交中...'; [cite: 181]
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = '正在處理照片與資料...';
 
-        [cite_start]const workers = []; [cite: 182]
-        document.querySelectorAll('#workerList > div').forEach(row => {
-            const t = row.querySelector('.worker-type').value;
-            const n = row.querySelector('.worker-num').value;
-            [cite_start]if(t) workers.push(`${t}:${n}人`); [cite: 182]
+        // 收集所有工種卡片資料
+        const items = [];
+        document.querySelectorAll('.item-card').forEach(card => {
+            const name = card.querySelector('.item-name')?.value;
+            if (name) {
+                items.push({
+                    工種: name,
+                    範圍: card.querySelector('.item-range').value,
+                    出工數: card.querySelector('.item-workers').value,
+                    施作量: card.querySelector('.item-qty').value,
+                    用料: card.querySelector('.item-material').value,
+                    注意事項: card.querySelector('.item-note').value
+                });
+            }
         });
 
         try {
-            const photoData = await Promise.all(Array.from(photoFiles).map(async (f, i) => ({
-                [cite_start]type: `施工_${i+1}`, base64: await fileToBase64(f) [cite: 183]
-            })));
+            // 轉換多張照片
+            const photoData = [];
+            for (let file of photos) {
+                const base64 = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = () => r(reader.result);
+                    reader.readAsDataURL(file);
+                });
+                photoData.push({ base64 });
+            }
 
             const payload = {
-                [cite_start]user: currentUser.email, [cite: 184]
-                [cite_start]siteName: siteName, [cite: 184]
-                [cite_start]reportDate: document.getElementById('reportDate').value, [cite: 184]
-                [cite_start]workers: workers.join(", "), [cite: 184]
-                [cite_start]materials: document.getElementById('materialStatus').value, [cite: 184]
-                [cite_start]equipment: document.getElementById('equipmentStatus').value, [cite: 185]
-                [cite_start]workDescription: workDesc, [cite: 185]
-                [cite_start]photos: photoData [cite: 185]
+                user: currentUser.email,
+                userName: currentUser.name,
+                siteName: siteName,
+                reportDate: document.getElementById('reportDate').value,
+                details: items, // 這裡包含了所有工種的明細
+                photos: photoData
             };
 
-            [cite_start]await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); [cite: 186]
-            [cite_start]alert('✅ 提交完成！'); [cite: 186]
-            [cite_start]location.reload(); [cite: 186]
-        } catch (err) { alert('❌ 失敗: ' + err.message); btn.disabled = false; [cite_start]} [cite: 187]
+            await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            });
+
+            alert('✅ 提交完成！');
+            location.reload();
+        } catch (e) {
+            alert('發生錯誤：' + e.message);
+            btn.disabled = false;
+        }
     }
 </script>
 </body>
