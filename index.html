@@ -2,245 +2,172 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>工程日報系統 - 多工種明細版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>工程日報 APP</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root { --primary: #2196F3; --success: #4CAF50; --light: #f5f5f5; --border: #ddd; --dark: #333; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Microsoft YaHei', sans-serif; background: var(--light); color: var(--dark); }
-        
-        /* 登入頁面 */
-        #loginPage { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
-        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --card: #ffffff; --text: #202124; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
 
-        /* 主程式 */
-        #mainApp { display: none; flex-direction: column; min-height: 100vh; }
-        .header { background: #1e3a8a; color: white; padding: 15px 20px; position: sticky; top: 0; z-index: 100; }
-        .content { flex: 1; padding: 15px; max-width: 800px; margin: 0 auto; width: 100%; }
+        /* APP 標頭 */
+        header { background: var(--primary); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 登入介面優化 */
+        #loginPage { display: flex; align-items: center; justify-content: center; height: 100vh; background: #fff; padding: 24px; }
+        .login-box { text-align: center; width: 100%; }
+        .login-box h1 { font-size: 24px; margin-bottom: 8px; }
 
-        /* 卡片樣式 (用於不同工種項目) */
-        .item-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
-        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        /* 卡片式佈局 */
+        #mainApp { display: none; padding: 12px; padding-bottom: 100px; }
+        .section-card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: var(--primary); display: flex; justify-content: space-between; }
+
+        /* 表單元素優化 (加大觸控面積) */
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; margin-bottom: 6px; color: #5f6368; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dadce0; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: var(--primary); }
         
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 15px; }
-        textarea { resize: none; }
+        /* 動態工種卡片 */
+        .work-item { background: #f1f3f4; border-radius: 8px; padding: 12px; margin-bottom: 12px; border-left: 4px solid var(--primary); }
         
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
-        .btn-submit { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(76,175,80,0.3); }
-        .btn-submit:disabled { background: #ccc; }
-        .btn-remove { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
+        /* 底部操作列 */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 16px; border-top: 1px solid #eee; display: flex; gap: 12px; }
+        .btn { border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; padding: 12px; }
+        .btn-add { background: #e8f0fe; color: var(--primary); flex: 1; }
+        .btn-submit { background: var(--primary); color: white; flex: 2; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
-        <div class="login-card">
-            <h2>🏗️ 工程管理系統</h2>
-            <p style="margin: 20px 0; color: #666;">請使用公司帳號登入</p>
-            <div id="googleBtn" style="display: flex; justify-content: center;"></div>
+        <div class="login-box">
+            <h1>🚧 工程日報系統</h1>
+            <p style="color:#5f6368; margin-bottom:32px;">請使用公司帳號登入</p>
+            <div id="googleBtn"></div>
         </div>
     </div>
 
     <div id="mainApp">
-        <div class="header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>每日施作詳報</h3>
-                <button onclick="logout()" style="background:none; border:1px solid white; color:white; padding:4px 8px; border-radius:4px;">登出</button>
-            </div>
-            <div id="userLabel" style="font-size: 12px; margin-top: 5px; opacity: 0.8;"></div>
+        <header>
+            <span id="userName" style="font-weight:bold;">日報填寫</span>
+            <button onclick="logout()" style="background:none; border:none; color:white; font-size:14px;">登出</button>
+        </header>
+
+        <div class="section-card">
+            <div class="form-group"><label>工地名稱</label><input type="text" id="siteName" placeholder="例如：中山北路建案"></div>
+            <div class="form-group"><label>報表日期</label><input type="date" id="reportDate"></div>
         </div>
 
-        <div class="content">
-            <div class="item-card" style="border-left: 5px solid #333;">
-                <div class="form-group">
-                    <label>工地名稱</label>
-                    <input type="text" id="siteName" placeholder="請輸入工地/建案名稱">
-                </div>
-                <div class="form-group">
-                    <label>報表日期</label>
-                    <input type="date" id="reportDate">
-                </div>
+        <div id="workList">
             </div>
 
-            <div id="itemsContainer">
-                </div>
+        <div class="section-card">
+            <div class="section-title">📸 現場施工照片</div>
+            <input type="file" id="constPhotos" accept="image/*" capture="environment" multiple style="border:none; padding:0;">
+            <p style="font-size:12px; color:#5f6368; margin-top:8px;">提示：可多選照片，系統會自動歸檔</p>
+        </div>
 
-            <button class="btn-add" onclick="addItemCard()">＋ 新增施作項目 (如：鋼筋、模板)</button>
-            
-            <div class="form-group">
-                <label>📸 現場施工照片 (可一次選取多張)</label>
-                <input type="file" id="allPhotos" accept="image/*" capture="environment" multiple>
-            </div>
-
-            <button id="submitBtn" class="btn-submit" onclick="submitForm()">🚀 完整提交日報</button>
+        <div class="bottom-nav">
+            <button class="btn btn-add" onclick="addWorkItem()">＋ 增加工種</button>
+            <button id="submitBtn" class="btn btn-submit" onclick="submitForm()">發送日報</button>
         </div>
     </div>
 
 <script>
-    const GAS_URL = '你的_GAS_部署網址'; // <--- 請填入您的 GAS URL
-    const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com';
+    const GAS_URL = '你的_GAS_URL'; 
+    const CLIENT_ID = '240527365724-gg80b8eip9c8qq4qd40mem7r4799rjur.apps.googleusercontent.com'; [cite: 168]
 
     let currentUser = null;
 
-    // 1. 初始化與保持登入邏輯
     window.onload = function() {
-        google.accounts.id.initialize({
-            client_id: CLIENT_ID,
-            callback: handleCredentialResponse,
-            auto_select: true // 嘗試自動登入
-        });
-        
-        google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'outline', size: 'large' });
+        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: handleCredentialResponse });
+        google.accounts.id.renderButton(document.getElementById('googleBtn'), { size: 'large', width: '280' });
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0]; [cite: 169]
 
-        // 設定預設日期
-        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
-
-        // 核心：檢查本地儲存的登入資訊
-        const savedUser = localStorage.getItem('mekong_user');
-        const loginTimestamp = localStorage.getItem('mekong_login_time');
-        const now = new Date().getTime();
-
-        // 如果有紀錄且在 30 分鐘內 (30 * 60 * 1000 毫秒)
-        if (savedUser && loginTimestamp && (now - loginTimestamp < 1800000)) {
-            currentUser = JSON.parse(savedUser);
+        // 檢查 30 分鐘登入持久化
+        const saved = localStorage.getItem('engineering_user');
+        const loginTime = localStorage.getItem('login_timestamp');
+        if (saved && loginTime && (Date.now() - loginTime < 1800000)) { // 30min = 1800000ms
+            currentUser = JSON.parse(saved);
             showApp();
-        } else {
-            localStorage.clear(); // 超時或無紀錄則清空
         }
-        
-        addItemCard(); // 初始化一個工種卡片
+        addWorkItem(); // 預設新增一個
     };
 
     function handleCredentialResponse(response) {
-        const payload = JSON.parse(atob(response.credential.split('.')[1]));
-        if (!payload.email.endsWith('@mekongkh.net')) {
-            alert('僅限公司帳號登入！');
-            return;
-        }
-        currentUser = payload;
-        // 儲存登入資訊與目前時間戳
-        localStorage.setItem('mekong_user', JSON.stringify(payload));
-        localStorage.setItem('mekong_login_time', new Date().getTime().toString());
+        const data = JSON.parse(atob(response.credential.split('.')[1]));
+        if (!data.email.endsWith('@mekongkh.net')) { alert('限公司帳號！'); return; } [cite: 172]
+        currentUser = data;
+        localStorage.setItem('engineering_user', JSON.stringify(data));
+        localStorage.setItem('login_timestamp', Date.now());
         showApp();
     }
 
     function showApp() {
         document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'flex';
-        document.getElementById('userLabel').textContent = `人員：${currentUser.name} (${currentUser.email})`;
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userName').textContent = currentUser.name;
     }
 
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
+    function logout() { localStorage.clear(); location.reload(); }
 
-    // 2. 工種項目動態欄位
-    function addItemCard() {
-        const container = document.getElementById('itemsContainer');
-        const id = Date.now();
-        const card = document.createElement('div');
-        card.className = 'item-card';
-        card.id = `card-${id}`;
-        card.innerHTML = `
-            <div class="item-header">
-                <input type="text" class="item-name" placeholder="工種名稱 (如：鋼筋、模板)" style="width:70%; font-weight:bold; border:none; border-bottom:1px solid #ccc;">
-                <button class="btn-remove" onclick="document.getElementById('card-${id}').remove()">刪除</button>
+    function addWorkItem() {
+        const div = document.createElement('div');
+        div.className = 'section-card work-item';
+        div.innerHTML = `
+            <div class="form-group"><label>工種 (如：鋼筋、模板)</label><input type="text" class="w-type"></div>
+            <div class="form-group"><label>施作範圍/數量</label><input type="text" class="w-qty" placeholder="例如：3F樑柱 / 50m2"></div>
+            <div style="display:flex; gap:8px;">
+                <div class="form-group" style="flex:1;"><label>出工數</label><input type="number" class="w-people"></div>
+                <div class="form-group" style="flex:1;"><label>用料數量</label><input type="text" class="w-material"></div>
             </div>
-            <div class="form-group">
-                <label>📍 施作範圍/位置</label>
-                <input type="text" class="item-range" placeholder="例如：2F 樑柱">
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>👷 出工數 (人)</label>
-                    <input type="number" class="item-workers" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>📐 施作數量</label>
-                    <input type="text" class="item-qty" placeholder="例如：50 m2">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>📦 用料數量</label>
-                <input type="text" class="item-material" placeholder="例如：水泥 20 包">
-            </div>
-            <div class="form-group">
-                <label>💡 特殊情況/注意事項</label>
-                <textarea class="item-note" rows="2" placeholder="備註特殊現場狀況..."></textarea>
-            </div>
+            <div class="form-group"><label>注意事項/特殊情況</label><textarea class="w-note" rows="2"></textarea></div>
+            <button onclick="this.parentElement.remove()" style="color:#d93025; background:none; border:none; font-size:12px;">✕ 移除此項目</button>
         `;
-        container.appendChild(card);
+        document.getElementById('workList').appendChild(div);
     }
 
-    // 3. 提交邏輯
     async function submitForm() {
-        const siteName = document.getElementById('siteName').value;
-        const photos = document.getElementById('allPhotos').files;
-
-        if (!siteName || photos.length === 0) {
-            alert('請填寫工地名稱並至少拍攝一張施工照片！');
-            return;
-        }
-
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerText = '正在處理照片與資料...';
+        const photoFiles = document.getElementById('constPhotos').files;
+        if (photoFiles.length === 0) { alert('請至少拍一張照！'); return; }
 
-        // 收集所有工種卡片資料
-        const items = [];
-        document.querySelectorAll('.item-card').forEach(card => {
-            const name = card.querySelector('.item-name')?.value;
-            if (name) {
-                items.push({
-                    工種: name,
-                    範圍: card.querySelector('.item-range').value,
-                    出工數: card.querySelector('.item-workers').value,
-                    施作量: card.querySelector('.item-qty').value,
-                    用料: card.querySelector('.item-material').value,
-                    注意事項: card.querySelector('.item-note').value
+        btn.disabled = true; btn.innerText = '傳送中...';
+
+        const details = [];
+        document.querySelectorAll('.work-item').forEach(el => {
+            if(el.querySelector('.w-type').value) {
+                details.push({
+                    type: el.querySelector('.w-type').value,
+                    qty: el.querySelector('.w-qty').value,
+                    people: el.querySelector('.w-people').value,
+                    material: el.querySelector('.w-material').value,
+                    note: el.querySelector('.w-note').value
                 });
             }
         });
 
         try {
-            // 轉換多張照片
-            const photoData = [];
-            for (let file of photos) {
-                const base64 = await new Promise(r => {
-                    const reader = new FileReader();
-                    reader.onload = () => r(reader.result);
-                    reader.readAsDataURL(file);
-                });
-                photoData.push({ base64 });
-            }
-
-            const payload = {
-                user: currentUser.email,
-                userName: currentUser.name,
-                siteName: siteName,
-                reportDate: document.getElementById('reportDate').value,
-                details: items, // 這裡包含了所有工種的明細
-                photos: photoData
-            };
+            const photos = await Promise.all(Array.from(photoFiles).map(async (f, i) => ({
+                type: `施工_${i+1}`, base64: await new Promise(r => {
+                    const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f);
+                })
+            }))); [cite: 183]
 
             await fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({
+                    user: currentUser.email,
+                    siteName: document.getElementById('siteName').value,
+                    reportDate: document.getElementById('reportDate').value,
+                    details: details,
+                    photos: photos
+                })
             });
-
-            alert('✅ 提交完成！');
-            location.reload();
-        } catch (e) {
-            alert('發生錯誤：' + e.message);
-            btn.disabled = false;
-        }
+            alert('✅ 提交成功！'); location.reload();
+        } catch (e) { alert('失敗'); btn.disabled = false; }
     }
 </script>
 </body>
